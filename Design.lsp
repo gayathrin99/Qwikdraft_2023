@@ -74,7 +74,7 @@
   ;; To be made into a dialog box in the future
   (setq	concrete_mix
 	 (getstring
-	   "Please enter the grade of concrete (M15/M20/M25/M30"
+	   "Please enter the grade of concrete (M15/M20/M25/M30/M35/M40)"
 	 )
   )
   (setq fck 0)
@@ -101,6 +101,18 @@
 	     (eq concrete_mix "30")
 	 )
 	 (setq fck 30)
+	)
+	((or (eq concrete_mix "m35")
+	     (eq concrete_mix "M35")
+	     (eq concrete_mix "35")
+	 )
+	 (setq fck 35)
+	)
+	((or (eq concrete_mix "m40")
+	     (eq concrete_mix "M40")
+	     (eq concrete_mix "40")
+	 )
+	 (setq fck 40)
 	)
   )
   (setq	steel_grade
@@ -534,10 +546,14 @@
 	  (princ "Checking the shear")
 	  (setq max_shear (/ (* factored_load ly) 2))
 	  (setq tau_v (/ (* max_shear 1000) (* 1000 eff_d)))
-	  
+	  (setq send_to_func (/ (* 100 ls_pos_m_ast) (* 1000 eff_d)))
+	  (setq tau_c (qd:tau_c_coeff fck send_to_func))
+	  (if (> tau_c tau_v)
+	    (princ "Slab design is O.K.")
+	    (princ "Slab design is not OK")
+	    )	  
 	)
       )
-
       (setq count (1+ count))
       (princ slab_point)
     )
@@ -550,7 +566,7 @@
       (setq finish "false")
     )
   )
-)
+
 
 
 
@@ -628,4 +644,46 @@
    )
     (rem n m)
   )
+)
+(defun qd:tau_c_coeff (conc_grade send_to_func)
+  (setq	tau_c_coeff '((0.28 0.35 0.46 0.54 0.60 0.64 0.71 0.71 0.71 0.71 0.71 0.71)
+		 (0.28 0.36 0.48 0.56 0.62 0.67 0.72 0.75 0.79 0.81 0.82 0.82 0.82)
+		      (0.29 0.36 0.49 0.57 0.64 0.70 0.74 0.78 0.82 0.85 0.88 0.90 0.92)
+		      (0.29 0.37 0.50 0.59 0.66 0.71 0.76 0.80 0.84 0.88 0.91 0.94 0.96)
+		      (0.29 0.37 0.50 0.59 0.67 0.73 0.78 0.82 0.86 0.90 0.93 0.96 0.99)
+		      (0.30 0.38 0.51 0.60 0.68 0.74 0.79 0.84 0.88 0.92 0.95 0.98 1.01)
+		)
+  )
+  (setq concrete_grade '(15 20 25 30 35 40))
+  (setq left_side_values '(0.0 0.15 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0))
+  (setq return_values 0.0)
+  (setq i 0)
+  (setq j 0)
+    (foreach e concrete_grade
+	(if (eq conc_grade (nth j concrete_grade))
+	  (progn
+	    (princ "We are in conc grade")
+	    (princ "\n")
+	  (while (< i 14)
+	  (progn
+	  (if (and (> send_to_func (nth i left_side_values))
+	     (< send_to_func (nth (1+ i) left_side_values))
+	)
+      (progn
+	(setq
+	  return_values (/ (+ (nth (1+ i) (nth j tau_c_coeff)) (* (nth i (nth j tau_c_coeff)) (/ (- (nth (1+ i) left_side_values) send_to_func) (- send_to_func (nth i left_side_values)))))
+		       (1+ (/ (- (nth (1+ i) left_side_values) send_to_func) (- send_to_func (nth i left_side_values))))))
+	(princ return_values)
+	(princ "\n")
+      )
+    )
+    (setq i (1+ i))
+  )
+	    )
+	  )
+	  )
+      (setq j (1+ j))
+      (princ j)
+      )
+  (princ return_values)
 )
