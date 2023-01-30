@@ -331,25 +331,26 @@
 	  (setq max_bm (/ (* factored_load ef_span ef_span) 8))
 	  (setq max_sf (/ (* factored_load lx) 2))
 	  (setq	msteel_percentage
-		 (* (/ (* 50 fck) fy)
+		 (* (/ (* 50.00 fck) fy)
 		    (- 1
-		       (sqrt (-	1
-				(/ (* 4.6 max_bm)
-				   (* fck 1000 eff_d)
+		       (sqrt (-	1.0
+				(/ (* 4.6 max_bm (expt 10 6))
+				   (* fck 1000.0 eff_d eff_d)
 				)
 			     )
 		       )
 		    )
 		 )
 	  )
-	  (setq m_ast (/ (* msteel_percentage 1000 eff_d 100) 100))
+	  (setq m_ast (/ (* msteel_percentage 1000.00 eff_d) 100.00))
+	  (setq spacing 0)
 	  (foreach i (list 8 10 12 16 20 25 32)
-	    (setq n (1+ (fix (/ m_ast (/ (* pi i i) 4)))))
+	    (setq spacing (fix (qd:rounddown (/ (* (/ (* pi i i) 4) 1000) m_ast) 10)))
 	    (princ (strcat "For main bar, a "
 			   (itoa i)
-			   " mm steel bar give "
-			   (itoa n)
-			   " number of bars\n"
+			   " mm steel bar given at a spacing of "
+			   (itoa spacing)
+			   " mm\n"
 		   )
 	    )
 	    )
@@ -365,12 +366,12 @@
 	    (setq m_ast_prov (/ (* n_prov pi m_ast_dia m_ast_dia) 4))
 	    (setq d_ast (/ (* 0.12 1000 eff_d) 100))
 	    (foreach i (list 8 10 12 16 20 25 32)
-	      (setq n (atoi (rtos (/ d_ast (/ (* pi i i) 4)))))
+	      (setq spacing (fix (qd:rounddown (/ (* (/ (* pi i i) 4) 1000) m_ast) 10)))
 	      (princ (strcat "For distribution bar, a "
 			     (itoa i)
-			     " mm steel bar give "
-			     (itoa n)
-			     " number of bars\n"
+			     " mm steel bar given at a spacing of "
+			     (itoa spacing)
+			     " mm\n"
 		     )
 	      )
 	    )
@@ -379,7 +380,7 @@
 	    (setq
 	      kt (/ 1
 		    (+ 0.225
-		       (* 0.0322 fs)
+		       (* 0.00322 fs)
 		       (* -0.625
 			  (/ (log (/ 1 msteel_percentage)) (log 10))
 		       )
@@ -387,21 +388,20 @@
 		 )
 	    )
 	    (setq l_dmax (* 20 kt))
-	    (setq l_dprov (/ lx (- slab_depth slab_cover)))
+	    (setq l_dprov (/ (* lx 1000) eff_d))
 	    (if	(> l_dmax l_dprov)
 	      (princ
 		(strcat
 		  "Slab design is OK. Max deflection is "
-		  l_dmax
+		  (itoa (fix l_dmax))
 		  " mm while the provided steel leads to a deflection of "
-		  l_dprov
+		  (itoa (fix l_dprov))
 		  " mm."
 		 )
 	      )
 	      (princ (strcat "Slab design is not OK."))
 	    )
 	  )
-	)
 	(progn
 	  (if (< (+ lx beam_width) (+ lx (- slab_depth slab_cover)))
 	    (setq x_ef_span (+ lx beam_width))
@@ -566,6 +566,7 @@
       (setq finish "false")
     )
   )
+  )
 
 
 
@@ -687,3 +688,13 @@
       )
   (princ return_values)
 )
+(defun qd:rounddown ( n m )
+      ((lambda ( r )
+	 (cond ((equal 0.0 r 1e-8) n)
+	       ((< n 0) (- n r m))
+	       ((- n r))
+	 )
+       )
+	(rem n m)
+      )
+    )
