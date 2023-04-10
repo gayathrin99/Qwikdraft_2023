@@ -19,6 +19,7 @@
     (setq i (1- i))
   )
   (setq sp (list))
+  (if (eq (cons 0 enttype_c) "LINE")
   (setq	column_ss (ssget "_X"
 			 (list (cons 0 enttype_c)
 			       (cons 8 layername_c)
@@ -27,6 +28,13 @@
 			 )
 		  )
   )
+    (setq	column_ss (ssget "_X"
+			 (list (cons 0 enttype_c)
+			       (cons 8 layername_c)
+			 )
+		  )
+  )
+    )
   (repeat (setq in (sslength column_ss))
     (vla-highlight
       (vlax-ename->vla-object
@@ -183,10 +191,12 @@
     )
     (setq i (1- i))
   )
+  
   (setq	ss_b (ssget "_X"
 		    (list (cons 0 enttype_b)
 			  (cons 62 layercolor_b)
-			  (cons 370 lineweight_b)
+			  (cons 370 linewei
+				ght_b)
 		    )
 	     )
   )
@@ -698,3 +708,40 @@
 	(rem n m)
       )
     )
+
+(defun C:samp1 ()
+  (setq mix "M20")
+  (setq names '("M6" "M8" "M10" "M12" "M15" "M16" "M20" "M24" "M25" "M30"))
+  
+  (setq dcl_id (load_dialog "E:\\purvaja\\WDBM\\LISP\\QWIKDRAFT\\AUTOLISP\\Website\\Drafting\\Drawings - code\\samp1.DCL"))
+		 
+  (if (not (new_dialog "samp1" dcl_id)			;test for dialog
+ 
+      );not
+ 
+    (exit)						;exit if no dialog
+ 
+  );if
+  (setq w1 (dimx_tile "im")
+	h1 (dimx_tile "im")
+	)
+ 
+     (action_tile
+    "cancel"						;if cancel button pressed
+    "(done_dialog) (setq userclick nil)"		;close dialog, set flag
+    );action_tile
+ 
+  (action_tile
+    "accept"						;if O.K. pressed
+    " (done_dialog)(setq userclick T))"			;close dialog, set flag
+  );action tile
+ 
+  (start_dialog)					;start dialog
+ 
+  (unload_dialog dcl_id)				;unload
+ 
+(princ)
+ 
+);defun C:samp
+ 
+(princ)
