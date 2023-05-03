@@ -49,16 +49,57 @@
  ;;(alert "Select among the following your preferable column positions")
   (while (< a1 (- (length startp) 1))
     (setq a2 (1+ a1))
+    (setq n (rand))
     (progn
       (while (< a2 (- (length startp) 1))
 	(if (eq (fix (distance (nth a2 startp) (nth a1 startp))) 0)
+	  (progn
+	    (command "rectang"
+		     (nth a2 startp)
+		     (mapcar '+ (nth a2 startp) (list 200 300 0)) ""
+		     )
 	  (princ a2)
 	  (setq theotherentity (append (nth a2 startp) theotherentity))
+	  )
 	  )
 	(setq a2 (1+ a2))
 	)
       ) 
     (setq a1 (1+ a1))
+  )
+  (setq theotherentity (list))
+(setq b1 0)
+  (setq b2 0)
+  (setq pt1 (getpoint "Pick the base point"))
+  (setq pt2 (getpoint "Pick the final point"))
+  (command "copy"
+	   wall_ss
+	   ""
+	   pt1
+	   pt2
+	   ""
+	   )
+  (setq endp (mapcar '(lambda (x) (mapcar '+ x pt2)) endp))
+  (while (< b1 (- (length endp) 1))
+    (setq b2 (1+ b1))
+    (setq n (rand))
+    (progn
+      (while (< b2 (- (length endp) 1))
+	(if (eq (fix (distance (nth b2 endp) (nth b1 endp))) 0)
+	  (progn
+	    (command "rectang"
+		     (nth b2 endp)
+		     (mapcar '+ (nth b2 endp) (list 200 200 0))
+		     ""
+		     )
+	  (princ b2)
+	  (setq theotherentity (append (nth b2 endp) theotherentity))
+	  )
+	  )
+	(setq b2 (1+ b2))
+	)
+      ) 
+    (setq b1 (1+ b1))
   )
   )
 
@@ -144,6 +185,18 @@
     )
     (reverse rtn)
 )
+
+(defun rand (/ a c m)
+  (setq m 4294967296.0
+	a 1664525.0
+	c 1013904223.0
+    $xn (rem (+ c (* a (cond ($xn) ((getvar 'date))))) m)
+    )
+    (/ $xn m)
+)
+(defun randrange ( a b )
+    (+ (min a b) (fix (* (rand) (1+ (abs (- a b))))))
+)
 		     
 ;|(if (and (/= (lin_search startp a (nth a startp)) a) (lin_search startp a (nth a startp)))
       (progn
@@ -151,4 +204,4 @@
 	(princ theotherentity)
 	(princ "\n")
 	)
-      )|;
+      )|;  
